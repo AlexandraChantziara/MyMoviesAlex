@@ -1,0 +1,22 @@
+package com.texnognosia.mymoviesalex.theme
+
+import androidx.compose.ui.graphics.Color
+
+val cherry = Color(0xffd81c39)
+val purple = Color(0xffA020F0)
+val blue= Color(0xff89CFF0)
+val pink=Color(0xffFF69B4)
+val babyPink=Color(0xffFFF1F5)
+val pinky = Color(0xffea5d72)
+val neonOrange = Color(0xffFF5C00)
+val green1 = Color(0xff00ad43)
+val babyPurple = Color(0xff9595D2)
+val oil = Color(0xff919388)
+val lightBeige = Color(0xffD6D2C4)
+val charcoalGray = Color(0xff1D252D)
+val deepTea = Color(0xff07272d)
+val paleGreen = Color(0xffB6CFD0)
+val red2 = Color(0xffBA0C2F)
+val orange2 = Color(0xffFF9E1B)
+val paleApricot = Color(0xff674230)
+val beige = Color(0xffDBC8B6)
