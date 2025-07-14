@@ -59,6 +59,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -72,6 +73,7 @@ import com.texnognosia.mymoviesalex.theme.brown1
 import com.texnognosia.mymoviesalex.theme.charcoalGray
 import com.texnognosia.mymoviesalex.theme.cherry
 import com.texnognosia.mymoviesalex.theme.chocolate
+import com.texnognosia.mymoviesalex.theme.darkGreen
 import com.texnognosia.mymoviesalex.theme.darkcherry
 import com.texnognosia.mymoviesalex.theme.icyWhite
 import com.texnognosia.mymoviesalex.theme.lightBeige
@@ -80,6 +82,7 @@ import com.texnognosia.mymoviesalex.theme.oil
 import com.texnognosia.mymoviesalex.theme.orange2
 import com.texnognosia.mymoviesalex.theme.paleApricot
 import com.texnognosia.mymoviesalex.theme.paleGreen
+import com.texnognosia.mymoviesalex.theme.softGreen
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
@@ -105,6 +108,7 @@ fun MyMoviesAlex(mainViewModel: MainViewModel = koinViewModel()) {
     val scope = rememberCoroutineScope()
     var showSearch by remember { mutableStateOf(false) }
     var search by remember { mutableStateOf("") }
+    var movieInformation by remember { mutableStateOf<MovieInformation?>(null) }
 
     ModalNavigationDrawer(
         drawerContent = {
@@ -167,18 +171,11 @@ fun MyMoviesAlex(mainViewModel: MainViewModel = koinViewModel()) {
                             IconButton(
                                 colors = IconButtonDefaults.iconButtonColors(contentColor =  Color.White),
                                 onClick = {
-                                    scope.launch {
-                                        if (drawerState.isClosed) {
-                                            drawerState.open()
-                                        } else {
-                                            drawerState.close()
-                                        }
-                                    }
+                                    scope.launch { drawerState.open() }
                                 },
                                 content = {
                                     Icon(Icons.Default.Menu, null)
-                                },
-                                enabled = search.isNotBlank()
+                                }
                             )
                         },
                         actions = {
@@ -304,28 +301,26 @@ fun MyMoviesAlex(mainViewModel: MainViewModel = koinViewModel()) {
                                         modifier = Modifier.weight(0.1f),
                                         color = icyWhite,
                                         fontSize = 16.sp,
-                                        fontWeight = FontWeight.Bold)
+                                        fontWeight = FontWeight.Bold
+                                    )
                                 }
                             }
                         )
-                        LazyColumn(
-                        ) {
+                        LazyColumn() {
                             itemsIndexed(mainViewModel.resultList) { index, result ->
                                 ElevatedCard(
                                     colors = CardDefaults.elevatedCardColors(containerColor = Color.White),
                                     onClick = {
                                         mainViewModel.loading = true
                                         scope.launch(Dispatchers.IO) {
-                                            scope.launch(Dispatchers.IO) {
-                                                val client = getKtorClient()
-                                                runCatching {
-                                                    val response = client.get("http://www.omdbapi.com/?apikey=67b070a1&i=%s".format(result.imdbID))
-                                                    val responseData = response.body<MovieInformation>()
-                                                    println(responseData)
-                                                }
-                                                client.close()
-                                                mainViewModel.loading = false
+                                            val client = getKtorClient()
+                                            runCatching {
+                                                val response = client.get("http://www.omdbapi.com/?apikey=67b070a1&i=%s".format(result.imdbID))
+                                                val responseData = response.body<MovieInformation>()
+                                                movieInformation = responseData
                                             }
+                                            client.close()
+                                            mainViewModel.loading = false
                                         }
                                     },
                                     modifier = Modifier.padding(4.dp),
@@ -342,27 +337,29 @@ fun MyMoviesAlex(mainViewModel: MainViewModel = koinViewModel()) {
                                             )
                                             Text(result.title,
                                                 modifier = Modifier.weight(0.2f),
-                                                color = orange2,
+                                                color = brown1,
                                                 fontSize = 16.sp,
                                                 fontWeight = FontWeight.Bold
                                             )
                                             Text(result.year,
                                                 modifier = Modifier.weight(0.3f),
-                                                color = orange2,
+                                                color = softGreen,
                                                 fontSize = 16.sp,
                                                 fontWeight = FontWeight.Bold
                                             )
                                             Text(result.imdbID,
                                                 modifier = Modifier.weight(0.2f),
-                                                color = orange2,
+                                                color = softGreen,
                                                 fontSize = 16.sp,
                                                 fontWeight = FontWeight.Bold
                                             )
                                             Text(result.type,
                                                 modifier = Modifier.weight(0.2f),
-                                                color = orange2,
+                                                color = softGreen,
                                                 fontSize = 16.sp,
-                                                fontWeight = FontWeight.Bold
+                                                fontWeight = FontWeight.Bold,
+                                                fontStyle = FontStyle.Italic
+
                                             )
 
                                             AsyncImage(
@@ -376,6 +373,7 @@ fun MyMoviesAlex(mainViewModel: MainViewModel = koinViewModel()) {
                             }
                         }
                     }
+
                     if (mainViewModel.loading) {
                         BasicAlertDialog(
                             onDismissRequest = {}
@@ -384,6 +382,15 @@ fun MyMoviesAlex(mainViewModel: MainViewModel = koinViewModel()) {
                                 CircularProgressIndicator()
                             }
                         }
+                    }
+
+                    movieInformation?.let { info ->
+                        BasicAlertDialog(
+                            onDismissRequest = { movieInformation = null },
+                            content = {
+                                Text(info.plot)
+                            }
+                        )
                     }
                 }
             )
