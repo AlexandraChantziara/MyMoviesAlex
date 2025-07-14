@@ -1,6 +1,7 @@
 package com.texnognosia.mymoviesalex
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,7 +25,11 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BasicAlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -62,10 +67,16 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.DialogProperties
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import coil3.compose.AsyncImage
 import com.texnognosia.mymoviesalex.dataclasses.MovieInformation
+import com.texnognosia.mymoviesalex.dataclasses.NavigationEnum
 import com.texnognosia.mymoviesalex.dataclasses.SearchResults
 import com.texnognosia.mymoviesalex.httpClient.getKtorClient
 import com.texnognosia.mymoviesalex.theme.beige
@@ -93,7 +104,6 @@ import mymoviesalex.composeapp.generated.resources.movie1
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
-import org.slf4j.helpers.NOP_FallbackServiceProvider
 
 @Composable
 @Preview
@@ -108,45 +118,50 @@ fun MyMoviesAlex(mainViewModel: MainViewModel = koinViewModel()) {
     val scope = rememberCoroutineScope()
     var showSearch by remember { mutableStateOf(false) }
     var search by remember { mutableStateOf("") }
-    var movieInformation by remember { mutableStateOf<MovieInformation?>(null) }
+    val navController = rememberNavController()
+    val startDestination by remember { mutableStateOf(NavigationEnum.MOVIES) }
+
 
     ModalNavigationDrawer(
         drawerContent = {
-            ModalDrawerSheet {
+            ModalDrawerSheet(drawerContainerColor = oil, drawerContentColor = Color.White) {
                 Column(
                     modifier = Modifier.padding(horizontal = 16.dp)
                         .verticalScroll(rememberScrollState())
                 ) {
                     Spacer(Modifier.height(12.dp))
-                    Text("Info and ", modifier = Modifier.padding(16.dp), style = MaterialTheme.typography.titleLarge)
+                    Text("Info and more", modifier = Modifier.padding(16.dp), style = MaterialTheme.typography.titleLarge)
                     HorizontalDivider()
 
-                    Text("Section 1", modifier = Modifier.padding(16.dp), style = MaterialTheme.typography.titleMedium)
-                    NavigationDrawerItem(
-                        label = { Text("Item 1") },
-                        selected = false,
-                        onClick = { /* Handle click */ }
-                    )
-                    NavigationDrawerItem(
-                        label = { Text("Item 2") },
-                        selected = false,
-                        onClick = { /* Handle click */ }
-                    )
+                    Text("Section 1", modifier = Modifier.padding(16.dp), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.ExtraBold)
+                    NavigationEnum.entries.forEach{nav ->
+                        NavigationDrawerItem(
+                            label = { Text(nav.title, color = Color.White) },
+                            selected = false,
+                            onClick = {
+                                mainViewModel.currentRoute = nav.route
+                                navController.navigate(nav.route)
+                                scope.launch {
+                                    drawerState.close()
+                                }
+                            }
+                        )
+                    }
 
                     HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
-                    Text("Section 2", modifier = Modifier.padding(16.dp), style = MaterialTheme.typography.titleMedium)
+                    Text("Section 2", modifier = Modifier.padding(16.dp), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.ExtraBold)
                     NavigationDrawerItem(
-                        label = { Text("Settings") },
+                        label = { Text("Settings", color = Color.White) },
                         selected = false,
-                        icon = { Icon(Icons.Outlined.Settings, contentDescription = null) },
-                        badge = { Text("20") }, // Placeholder
+                        icon = { Icon(Icons.Outlined.Settings, contentDescription = null, tint = Color.White) },
+                        badge = { Text("20") },
                         onClick = { /* Handle click */ }
                     )
                     NavigationDrawerItem(
-                        label = { Text("Help and feedback") },
+                        label = { Text("Help and feedback", color = Color.White) },
                         selected = false,
-                        icon = { Icon(Icons.AutoMirrored.Outlined.Help, contentDescription = null) },
+                        icon = { Icon(Icons.AutoMirrored.Outlined.Help, contentDescription = null, tint = Color.White) },
                         onClick = { /* Handle click */ },
                     )
                     Spacer(Modifier.height(12.dp))
@@ -183,6 +198,7 @@ fun MyMoviesAlex(mainViewModel: MainViewModel = koinViewModel()) {
                                 colors = IconButtonDefaults.iconButtonColors(contentColor = paleApricot),
                                 onClick = {
                                     mainViewModel.loading = true
+                                    mainViewModel.isClicked = true
                                     scope.launch(Dispatchers.IO) {
                                         val client = getKtorClient()
                                         runCatching {
@@ -191,6 +207,9 @@ fun MyMoviesAlex(mainViewModel: MainViewModel = koinViewModel()) {
                                             val responseData = response.body<SearchResults>()
                                             mainViewModel.resultList.clear()
                                             mainViewModel.resultList.addAll(responseData.search)
+                                            mainViewModel.isClicked = false
+                                        }.getOrElse {
+                                            mainViewModel.resultList.clear()
                                         }
                                         mainViewModel.loading = false
                                         client.close()
@@ -220,8 +239,8 @@ fun MyMoviesAlex(mainViewModel: MainViewModel = koinViewModel()) {
                                         focusedTrailingIconColor = oil,
                                         unfocusedTrailingIconColor = beige,
                                         focusedContainerColor = Color.White,
-                                        unfocusedContainerColor = Color.White)
-                                    ,
+                                        unfocusedContainerColor = Color.White
+                                    ),
                                     label = {
                                         Text("Αναζήτηση")
                                     },
@@ -260,119 +279,26 @@ fun MyMoviesAlex(mainViewModel: MainViewModel = koinViewModel()) {
                     )
                 },
                 content = { paddingValues ->
-                    Column(Modifier.padding(paddingValues).padding(4.dp)) {
-                        ElevatedCard(
-                            colors = CardDefaults.elevatedCardColors(containerColor = brown1),
-                            content = {
-                                Row(
-                                    modifier = Modifier.padding(16.dp).fillMaxWidth(), horizontalArrangement = Arrangement.Center
-                                ) {
-                                    Text("#",
-                                        modifier = Modifier.weight(0.05f),
-                                        color = charcoalGray,
-                                        fontSize = 16.sp,
-                                        fontWeight = FontWeight.ExtraBold
-                                    )
-                                    Text("ΤΙΤΛΟΣ",
-                                        modifier = Modifier.weight(0.2f),
-                                        color = icyWhite,
-                                        fontSize = 16.sp,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                    Text("ΧΡΟΝΟΛΟΓΙΑ",
-                                        modifier = Modifier.weight(0.3f),
-                                        color = icyWhite,
-                                        fontSize = 16.sp,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                    Text("imbdID",
-                                        modifier = Modifier.weight(0.2f),
-                                        color = icyWhite,
-                                        fontSize = 16.sp,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                    Text("ΕΙΔΟΣ",
-                                        modifier = Modifier.weight(0.2f),
-                                        color = icyWhite,
-                                        fontSize = 16.sp,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                    Text("ΕΙΚΟΝΑ",
-                                        modifier = Modifier.weight(0.1f),
-                                        color = icyWhite,
-                                        fontSize = 16.sp,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                }
-                            }
-                        )
-                        LazyColumn() {
-                            itemsIndexed(mainViewModel.resultList) { index, result ->
-                                ElevatedCard(
-                                    colors = CardDefaults.elevatedCardColors(containerColor = Color.White),
-                                    onClick = {
-                                        mainViewModel.loading = true
-                                        scope.launch(Dispatchers.IO) {
-                                            val client = getKtorClient()
-                                            runCatching {
-                                                val response = client.get("http://www.omdbapi.com/?apikey=67b070a1&i=%s".format(result.imdbID))
-                                                val responseData = response.body<MovieInformation>()
-                                                movieInformation = responseData
-                                            }
-                                            client.close()
-                                            mainViewModel.loading = false
-                                        }
-                                    },
-                                    modifier = Modifier.padding(4.dp),
-                                    content = {
-                                        Row(
-                                            modifier = Modifier.padding(16.dp).fillMaxWidth(),
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            Text((index + 1).toString(),
-                                                modifier = Modifier.weight(0.05f),
-                                                color = charcoalGray,
-                                                fontSize = 16.sp,
-                                                fontWeight = FontWeight.ExtraBold
-                                            )
-                                            Text(result.title,
-                                                modifier = Modifier.weight(0.2f),
-                                                color = brown1,
-                                                fontSize = 16.sp,
-                                                fontWeight = FontWeight.Bold
-                                            )
-                                            Text(result.year,
-                                                modifier = Modifier.weight(0.3f),
-                                                color = softGreen,
-                                                fontSize = 16.sp,
-                                                fontWeight = FontWeight.Bold
-                                            )
-                                            Text(result.imdbID,
-                                                modifier = Modifier.weight(0.2f),
-                                                color = softGreen,
-                                                fontSize = 16.sp,
-                                                fontWeight = FontWeight.Bold
-                                            )
-                                            Text(result.type,
-                                                modifier = Modifier.weight(0.2f),
-                                                color = softGreen,
-                                                fontSize = 16.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                fontStyle = FontStyle.Italic
-
-                                            )
-
-                                            AsyncImage(
-                                                modifier = Modifier.weight(0.1f),
-                                                model = result.poster,
-                                                contentDescription = null
-                                            )
-                                        }
+                    NavHost(
+                        navController,
+                        startDestination.route,
+                        modifier = Modifier.padding(paddingValues)
+                    ){
+                        NavigationEnum.entries.forEach{nav->
+                            composable(nav.route) {
+                                when(nav){
+                                    NavigationEnum.MOVIES ->{
+                                        MoviesScreen(mainViewModel)
                                     }
-                                )
+
+                                    NavigationEnum.FAVORITES -> {
+                                        FavoritesScreen(mainViewModel)
+                                    }
+                                }
                             }
                         }
                     }
+
 
                     if (mainViewModel.loading) {
                         BasicAlertDialog(
@@ -384,16 +310,223 @@ fun MyMoviesAlex(mainViewModel: MainViewModel = koinViewModel()) {
                         }
                     }
 
-                    movieInformation?.let { info ->
-                        BasicAlertDialog(
-                            onDismissRequest = { movieInformation = null },
-                            content = {
-                                Text(info.plot)
-                            }
+                    mainViewModel.movieInformation?.let { info ->
+                        AlertDialog(
+                            containerColor = softGreen,
+                            confirmButton = {
+                                Button(
+                                    onClick = { mainViewModel.movieInformation = null },
+                                    content = { Text("OK") },
+                                    colors = ButtonColors(containerColor = oil, contentColor = Color.White, disabledContentColor = beige, disabledContainerColor = lightBeige)
+                                )
+                            },
+                            title = {
+                                Text(info.title.uppercase(), modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center, color = Color.White, fontWeight = FontWeight.ExtraBold)
+                            },
+                            onDismissRequest = { mainViewModel.movieInformation = null },
+                            text = {
+                                Column(Modifier.verticalScroll(rememberScrollState())) {
+                                    AsyncImage(
+                                        model = info.poster,
+                                        contentDescription = null,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text("Τίτλος:", fontWeight = FontWeight.Bold, modifier = Modifier.padding(end = 4.dp), color = Color.White)
+                                        Text(info.title)
+                                    }
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text("Ημερομηνία έκδοσης:", fontWeight = FontWeight.Bold, modifier = Modifier.padding(4.dp), color = Color.White)
+                                        Text(info.released)
+                                    }
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text("Διάρκεια:", fontWeight = FontWeight.Bold, modifier = Modifier.padding(4.dp), color = Color.White)
+                                        Text(info.runtime)
+                                    }
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text("Είδος:", fontWeight = FontWeight.Bold, modifier = Modifier.padding(4.dp), color = Color.White)
+                                        Text(info.genre)
+                                    }
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text("Σκηνοθέτης:", fontWeight = FontWeight.Bold, modifier = Modifier.padding(4.dp), color = Color.White)
+                                        Text(info.director)
+                                    }
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text("Συγγραφέας:", fontWeight = FontWeight.Bold, modifier = Modifier.padding(4.dp), color = Color.White)
+                                        Text(info.writer)
+                                    }
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text("Cast:", fontWeight = FontWeight.Bold, modifier = Modifier.padding(4.dp), color = Color.White)
+                                        Text(info.actors)
+                                    }
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text("Υπόθεση:", fontWeight = FontWeight.Bold, modifier = Modifier.padding(4.dp), color = Color.White)
+                                        Text(info.plot)
+                                    }
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text("Γλώσσα:", fontWeight = FontWeight.Bold, modifier = Modifier.padding(4.dp), color = Color.White)
+                                        Text(info.language)
+                                    }
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text("Χώρα:", fontWeight = FontWeight.Bold, modifier = Modifier.padding(4.dp), color = Color.White)
+                                        Text(info.country)
+                                    }
+                                    Text("Bαθμολογία:", fontWeight = FontWeight.Bold, modifier = Modifier.padding(4.dp), color = Color.White)
+
+                                    info.ratings.forEach { r ->
+                                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(start = 16.dp)) {
+                                            Text("Πηγή:", fontWeight = FontWeight.Bold, modifier = Modifier.padding(4.dp), color = Color.White)
+                                            Text(r.source)
+                                            Text("-->", fontWeight = FontWeight.Bold, modifier = Modifier.padding(4.dp), color = Color.White)
+                                            Text(r.value)
+                                        }
+                                    }
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text("Imbd Rating:", fontWeight = FontWeight.Bold, modifier = Modifier.padding(4.dp), color = Color.White)
+                                        Text(info.imdbRating)
+                                        Text("Imbd Votes:", fontWeight = FontWeight.Bold, modifier = Modifier.padding(4.dp), color = Color.White)
+                                        Text(info.imdbVotes)
+                                    }
+                                }
+                            },
+                            properties = DialogProperties(
+                                dismissOnClickOutside = false
+                            )
                         )
+
+
                     }
                 }
             )
         }
     )
+}
+@Composable
+fun FavoritesScreen(mainViewModel: MainViewModel){
+
+}
+
+
+@Composable
+fun MoviesScreen(mainViewModel : MainViewModel){
+    val scope = rememberCoroutineScope()
+
+    Column(Modifier.padding(4.dp)) {
+        ElevatedCard(
+            colors = CardDefaults.elevatedCardColors(containerColor = brown1),
+            content = {
+                Row(
+                    modifier = Modifier.padding(16.dp).fillMaxWidth(), horizontalArrangement = Arrangement.Center
+                ) {
+                    Text("#",
+                        modifier = Modifier.weight(0.05f),
+                        color = charcoalGray,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.ExtraBold
+                    )
+                    Text("ΤΙΤΛΟΣ",
+                        modifier = Modifier.weight(0.2f),
+                        color = icyWhite,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text("ΧΡΟΝΟΛΟΓΙΑ",
+                        modifier = Modifier.weight(0.3f),
+                        color = icyWhite,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text("imbdID",
+                        modifier = Modifier.weight(0.2f),
+                        color = icyWhite,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text("ΕΙΔΟΣ",
+                        modifier = Modifier.weight(0.2f),
+                        color = icyWhite,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text("ΕΙΚΟΝΑ",
+                        modifier = Modifier.weight(0.1f),
+                        color = icyWhite,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        )
+        LazyColumn {
+            if(mainViewModel.resultList.isEmpty() && mainViewModel.isClicked){
+                item {
+                    Text("ΔΕΝ ΒΡΕΘΗΚΑΝ ΤΑΙΝΙΕΣ", modifier = Modifier.fillParentMaxSize(), textAlign = TextAlign.Center, color = Color.White, fontStyle = FontStyle.Italic)
+                }
+            }
+            itemsIndexed(mainViewModel.resultList) { index, result ->
+                ElevatedCard(
+                    colors = CardDefaults.elevatedCardColors(containerColor = Color.White),
+                    onClick = {
+                        mainViewModel.loading = true
+                        scope.launch(Dispatchers.IO) {
+                            val client = getKtorClient()
+                            runCatching {
+                                val response = client.get("http://www.omdbapi.com/?apikey=67b070a1&i=%s".format(result.imdbID))
+                                val responseData = response.body<MovieInformation>()
+                               mainViewModel.movieInformation = responseData
+                            }
+                            client.close()
+                            mainViewModel.loading = false
+                        }
+                    },
+                    modifier = Modifier.padding(4.dp),
+                    content = {
+                        Row(
+                            modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text((index + 1).toString(),
+                                modifier = Modifier.weight(0.05f),
+                                color = charcoalGray,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.ExtraBold
+                            )
+                            Text(result.title,
+                                modifier = Modifier.weight(0.2f),
+                                color = brown1,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(result.year,
+                                modifier = Modifier.weight(0.3f),
+                                color = softGreen,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(result.imdbID,
+                                modifier = Modifier.weight(0.2f),
+                                color = softGreen,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(result.type,
+                                modifier = Modifier.weight(0.2f),
+                                color = softGreen,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontStyle = FontStyle.Italic
+
+                            )
+
+                            AsyncImage(
+                                modifier = Modifier.weight(0.1f),
+                                model = result.poster,
+                                contentDescription = null
+                            )
+                        }
+                    }
+                )
+            }
+        }
+    }
 }
