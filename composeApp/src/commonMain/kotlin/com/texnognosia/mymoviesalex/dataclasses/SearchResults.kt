@@ -1,7 +1,10 @@
 package com.texnognosia.mymoviesalex.dataclasses
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 @Serializable
 data class SearchResults(
@@ -25,8 +28,12 @@ data class SearchResult(
     val poster : String,
 )
 
+@Entity
 @Serializable
 data class MovieInformation(
+    @PrimaryKey(autoGenerate = true)
+    @Transient
+    val id : Int = 0,
     @SerialName("Title")
     val title : String,
     @SerialName("Year")
@@ -73,7 +80,9 @@ data class MovieInformation(
     @SerialName("Website")
     val website : String,
     @SerialName("Response")
-    val response : String
+    val response : String,
+    @Transient
+    val favorite : Boolean = false
 )
 
 @Serializable

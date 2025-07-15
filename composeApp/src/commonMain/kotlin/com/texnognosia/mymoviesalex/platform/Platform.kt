@@ -1,4 +1,4 @@
-package com.texnognosia.mymoviesalex
+package com.texnognosia.mymoviesalex.platform
 
 interface Platform {
     val name: String

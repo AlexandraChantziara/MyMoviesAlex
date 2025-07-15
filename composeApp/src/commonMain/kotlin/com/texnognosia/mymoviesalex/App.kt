@@ -12,10 +12,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Help
@@ -24,6 +27,8 @@ import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SearchOff
+import androidx.compose.material.icons.outlined.Favorite
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BasicAlertDialog
@@ -71,6 +76,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -86,18 +93,22 @@ import com.texnognosia.mymoviesalex.theme.cherry
 import com.texnognosia.mymoviesalex.theme.chocolate
 import com.texnognosia.mymoviesalex.theme.darkGreen
 import com.texnognosia.mymoviesalex.theme.darkcherry
+import com.texnognosia.mymoviesalex.theme.ekrou
 import com.texnognosia.mymoviesalex.theme.icyWhite
 import com.texnognosia.mymoviesalex.theme.lightBeige
+import com.texnognosia.mymoviesalex.theme.lightMenta
 import com.texnognosia.mymoviesalex.theme.menta
 import com.texnognosia.mymoviesalex.theme.oil
 import com.texnognosia.mymoviesalex.theme.orange2
 import com.texnognosia.mymoviesalex.theme.paleApricot
 import com.texnognosia.mymoviesalex.theme.paleGreen
+import com.texnognosia.mymoviesalex.theme.peachy
 import com.texnognosia.mymoviesalex.theme.softGreen
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.launch
 import mymoviesalex.composeapp.generated.resources.Res
 import mymoviesalex.composeapp.generated.resources.movie1
@@ -321,7 +332,18 @@ fun MyMoviesAlex(mainViewModel: MainViewModel = koinViewModel()) {
                                 )
                             },
                             title = {
-                                Text(info.title.uppercase(), modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center, color = Color.White, fontWeight = FontWeight.ExtraBold)
+                                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                                    Spacer(Modifier.width(48.dp))
+                                    Text(info.title.uppercase(), textAlign = TextAlign.Center, color = Color.White, fontWeight = FontWeight.ExtraBold, modifier = Modifier.weight(1f))
+                                    IconButton(
+                                        onClick = {
+                                            mainViewModel.upsertMyMovies(info)
+                                        },
+                                        content = {
+                                            Icon(Icons.Outlined.FavoriteBorder,null)
+                                        }
+                                    )
+                                }
                             },
                             onDismissRequest = { mainViewModel.movieInformation = null },
                             text = {
@@ -403,6 +425,54 @@ fun MyMoviesAlex(mainViewModel: MainViewModel = koinViewModel()) {
 }
 @Composable
 fun FavoritesScreen(mainViewModel: MainViewModel){
+
+    val list by remember { mainViewModel.myMoviesData }.collectAsStateWithLifecycle()
+    Column(Modifier.padding(4.dp)) {
+        ElevatedCard(
+            colors = CardDefaults.elevatedCardColors(containerColor = menta),
+            content = {
+                Row(modifier = Modifier.padding(16.dp).fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                    Text("#",
+                        modifier = Modifier.weight(0.48f),
+                        fontStyle = FontStyle.Italic,
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 16.sp,
+                        color = paleApricot)
+                    Text("FAVORITE MOVIES",
+                        fontStyle = FontStyle.Italic,
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 16.sp,
+                        color = Color.White)
+                    Spacer(modifier = Modifier.weight(0.48f))
+                }
+            }
+        )
+        LazyColumn {
+            itemsIndexed(list){index, movie->
+                ElevatedCard(
+                    colors = CardDefaults.elevatedCardColors(containerColor = lightMenta),
+                    modifier = Modifier.padding(2.dp),
+                    onClick = {},
+                    content = {
+                        Row(
+                            modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ){
+                            Text((index+1).toString(),
+                                modifier = Modifier.weight(0.48f),
+                                color = paleApricot,
+                                fontWeight = FontWeight.Bold)
+                            Text(movie.title.uppercase(),
+                                color = menta,
+                                fontWeight = FontWeight.Bold)
+                            Spacer(modifier = Modifier.weight(0.48f))
+                        }
+                    }
+                )
+            }
+        }
+    }
+
 
 }
 
