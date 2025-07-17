@@ -1,33 +1,28 @@
 package com.texnognosia.mymoviesalex
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Help
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SearchOff
-import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.AlertDialog
@@ -35,7 +30,6 @@ import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
@@ -54,13 +48,11 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldColors
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -69,7 +61,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -77,7 +68,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewModelScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -89,26 +79,18 @@ import com.texnognosia.mymoviesalex.httpClient.getKtorClient
 import com.texnognosia.mymoviesalex.theme.beige
 import com.texnognosia.mymoviesalex.theme.brown1
 import com.texnognosia.mymoviesalex.theme.charcoalGray
-import com.texnognosia.mymoviesalex.theme.cherry
-import com.texnognosia.mymoviesalex.theme.chocolate
 import com.texnognosia.mymoviesalex.theme.darkGreen
 import com.texnognosia.mymoviesalex.theme.darkcherry
-import com.texnognosia.mymoviesalex.theme.ekrou
 import com.texnognosia.mymoviesalex.theme.icyWhite
 import com.texnognosia.mymoviesalex.theme.lightBeige
 import com.texnognosia.mymoviesalex.theme.lightMenta
 import com.texnognosia.mymoviesalex.theme.menta
 import com.texnognosia.mymoviesalex.theme.oil
-import com.texnognosia.mymoviesalex.theme.orange2
 import com.texnognosia.mymoviesalex.theme.paleApricot
-import com.texnognosia.mymoviesalex.theme.paleGreen
-import com.texnognosia.mymoviesalex.theme.peachy
 import com.texnognosia.mymoviesalex.theme.softGreen
 import io.ktor.client.call.body
 import io.ktor.client.request.get
-import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.launch
 import mymoviesalex.composeapp.generated.resources.Res
 import mymoviesalex.composeapp.generated.resources.movie1
@@ -131,6 +113,7 @@ fun MyMoviesAlex(mainViewModel: MainViewModel = koinViewModel()) {
     var search by remember { mutableStateOf("") }
     val navController = rememberNavController()
     val startDestination by remember { mutableStateOf(NavigationEnum.MOVIES) }
+
 
 
     ModalNavigationDrawer(
@@ -409,6 +392,12 @@ fun MyMoviesAlex(mainViewModel: MainViewModel = koinViewModel()) {
                                         Text("Imbd Votes:", fontWeight = FontWeight.Bold, modifier = Modifier.padding(4.dp), color = Color.White)
                                         Text(info.imdbVotes)
                                     }
+                                    if(info.type == "series"){
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Text("Seasons:", fontWeight = FontWeight.Bold, modifier = Modifier.padding(4.dp), color = Color.White)
+                                            Text(info.totalSeasons ?: "")
+                                        }
+                                    }
                                 }
                             },
                             properties = DialogProperties(
@@ -427,6 +416,7 @@ fun MyMoviesAlex(mainViewModel: MainViewModel = koinViewModel()) {
 fun FavoritesScreen(mainViewModel: MainViewModel){
 
     val list by remember { mainViewModel.myMoviesData }.collectAsStateWithLifecycle()
+
     Column(Modifier.padding(4.dp)) {
         ElevatedCard(
             colors = CardDefaults.elevatedCardColors(containerColor = menta),
@@ -452,7 +442,9 @@ fun FavoritesScreen(mainViewModel: MainViewModel){
                 ElevatedCard(
                     colors = CardDefaults.elevatedCardColors(containerColor = lightMenta),
                     modifier = Modifier.padding(2.dp),
-                    onClick = {},
+                    onClick = {
+                        mainViewModel.itemToDelete = movie
+                    },
                     content = {
                         Row(
                             modifier = Modifier.padding(16.dp).fillMaxWidth(),
@@ -473,7 +465,35 @@ fun FavoritesScreen(mainViewModel: MainViewModel){
         }
     }
 
-
+    if (mainViewModel.itemToDelete!= null) {
+        AlertDialog(
+            containerColor = darkGreen,
+            onDismissRequest = {
+               mainViewModel.itemToDelete = null
+            },
+            confirmButton = {
+                Button(
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = menta),
+                    onClick = {
+                        mainViewModel.deleteMyMovies(mainViewModel.itemToDelete!!)
+                        mainViewModel.itemToDelete = null
+                    },
+                    content = {
+                        Text("Yes")
+                    }
+                )
+            },
+            icon = {
+                Icon(Icons.Default.Delete,null, tint = Color.White)
+            },
+            title = {
+                    Text("Διαγραφή", color = Color.White, fontWeight = FontWeight.ExtraBold)
+            },
+            text = {
+                Text("Είστε σίγουροι ότι θέλετε να διαγράψετε αυτήν την ταινία;", color = Color.White, fontWeight = FontWeight.Bold, fontStyle = FontStyle.Italic, modifier = Modifier.fillMaxWidth())
+            }
+        )
+    }
 }
 
 

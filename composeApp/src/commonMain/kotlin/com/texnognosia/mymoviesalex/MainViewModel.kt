@@ -19,6 +19,7 @@ class MainViewModel(private val repository: Repository) : ViewModel() {
     var movieInformation by mutableStateOf<MovieInformation?>(null)
     var isClicked by mutableStateOf(false)
     var currentRoute by mutableStateOf("")
+    var itemToDelete by mutableStateOf<MovieInformation?>(null)
 
     fun upsertMyMovies(myMoviesData : MovieInformation){
         viewModelScope.launch {

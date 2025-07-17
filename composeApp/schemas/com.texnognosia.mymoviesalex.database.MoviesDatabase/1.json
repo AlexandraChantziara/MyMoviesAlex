@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "f9ae024f0b42e024abf17d535eb22718",
+    "identityHash": "a024592b5c7c1d1789c349eb055fc699",
     "entities": [
       {
         "tableName": "MovieInformation",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `title` TEXT NOT NULL, `year` TEXT NOT NULL, `rated` TEXT NOT NULL, `released` TEXT NOT NULL, `runtime` TEXT NOT NULL, `genre` TEXT NOT NULL, `director` TEXT NOT NULL, `writer` TEXT NOT NULL, `actors` TEXT NOT NULL, `plot` TEXT NOT NULL, `language` TEXT NOT NULL, `country` TEXT NOT NULL, `awards` TEXT NOT NULL, `poster` TEXT NOT NULL, `ratings` TEXT NOT NULL, `metascore` TEXT NOT NULL, `imdbRating` TEXT NOT NULL, `imdbVotes` TEXT NOT NULL, `imdbID` TEXT NOT NULL, `type` TEXT NOT NULL, `dvd` TEXT NOT NULL, `boxOffice` TEXT NOT NULL, `production` TEXT NOT NULL, `website` TEXT NOT NULL, `response` TEXT NOT NULL, `favorite` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `title` TEXT NOT NULL, `year` TEXT NOT NULL, `rated` TEXT NOT NULL, `released` TEXT NOT NULL, `runtime` TEXT NOT NULL, `genre` TEXT NOT NULL, `director` TEXT NOT NULL, `writer` TEXT NOT NULL, `actors` TEXT NOT NULL, `plot` TEXT NOT NULL, `language` TEXT NOT NULL, `country` TEXT NOT NULL, `awards` TEXT NOT NULL, `poster` TEXT NOT NULL, `ratings` TEXT NOT NULL, `metascore` TEXT NOT NULL, `imdbRating` TEXT NOT NULL, `imdbVotes` TEXT NOT NULL, `imdbID` TEXT NOT NULL, `type` TEXT NOT NULL, `dvd` TEXT, `boxOffice` TEXT, `production` TEXT, `website` TEXT, `response` TEXT NOT NULL, `totalSeasons` TEXT, `favorite` INTEGER NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -137,32 +137,33 @@
           {
             "fieldPath": "dvd",
             "columnName": "dvd",
-            "affinity": "TEXT",
-            "notNull": true
+            "affinity": "TEXT"
           },
           {
             "fieldPath": "boxOffice",
             "columnName": "boxOffice",
-            "affinity": "TEXT",
-            "notNull": true
+            "affinity": "TEXT"
           },
           {
             "fieldPath": "production",
             "columnName": "production",
-            "affinity": "TEXT",
-            "notNull": true
+            "affinity": "TEXT"
           },
           {
             "fieldPath": "website",
             "columnName": "website",
-            "affinity": "TEXT",
-            "notNull": true
+            "affinity": "TEXT"
           },
           {
             "fieldPath": "response",
             "columnName": "response",
             "affinity": "TEXT",
             "notNull": true
+          },
+          {
+            "fieldPath": "totalSeasons",
+            "columnName": "totalSeasons",
+            "affinity": "TEXT"
           },
           {
             "fieldPath": "favorite",
@@ -181,7 +182,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'f9ae024f0b42e024abf17d535eb22718')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'a024592b5c7c1d1789c349eb055fc699')"
     ]
   }
 }

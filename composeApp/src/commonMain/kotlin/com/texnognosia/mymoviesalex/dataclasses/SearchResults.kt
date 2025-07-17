@@ -72,15 +72,17 @@ data class MovieInformation(
     @SerialName("Type")
     val type : String,
     @SerialName("DVD")
-    val dvd : String,
+    val dvd : String? = null,
     @SerialName("BoxOffice")
-    val boxOffice : String,
+    val boxOffice : String? = null,
     @SerialName("Production")
-    val production : String,
+    val production : String? = null,
     @SerialName("Website")
-    val website : String,
+    val website : String? = null,
     @SerialName("Response")
     val response : String,
+    @SerialName("totalSeasons")
+    val totalSeasons : String? = null,
     @Transient
     val favorite : Boolean = false
 )
